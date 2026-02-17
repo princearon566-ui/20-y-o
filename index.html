@@ -6,19 +6,345 @@
     <title>Tuli Aron | Archive V.20</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/lucide-react"></script>
-    
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* Custom Animations */
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes smoke {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            20% { opacity: 0.5; }
+            100% { transform: translateY(-200px) scale(3); opacity: 0; }
+        }
+
+        .animate-smoke {
+            animation: smoke 5s infinite ease-out;
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { display: none; }
+        body { 
+            scrollbar-width: none; 
+            background-color: #020617; 
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-200">
-    
+<body>
     <div id="root"></div>
 
-    <script type="module" src="script.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const { 
+            ChevronRight, Cpu, Archive, ShieldCheck, Zap, TrendingUp, 
+            Award, Target, Lock, ArrowRight, Cake, CircleDot, 
+            Activity, Users, Compass 
+        } = lucide;
+
+        // --- Shared Components ---
+
+        const Typewriter = ({ text, speed = 50, onComplete }) => {
+            const [displayedText, setDisplayedText] = useState("");
+            const [index, setIndex] = useState(0);
+
+            useEffect(() => {
+                if (index < text.length) {
+                    const timeout = setTimeout(() => {
+                        setDisplayedText((prev) => prev + text.charAt(index));
+                        setIndex(index + 1);
+                    }, speed);
+                    return () => clearTimeout(timeout);
+                } else if (onComplete) {
+                    onComplete();
+                }
+            }, [index, text, speed, onComplete]);
+
+            return <span>{displayedText}</span>;
+        };
+
+        const NeuralBackground = () => {
+            const canvasRef = useRef(null);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                let animationFrameId;
+
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+
+                window.addEventListener('resize', resize);
+                resize();
+
+                const particles = Array.from({ length: 40 }, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: Math.random() * 2
+                }));
+
+                const animate = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'rgba(2, 6, 23, 0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    particles.forEach((p, i) => {
+                        p.x += p.vx; p.y += p.vy;
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(100, 116, 139, 0.3)';
+                        ctx.fill();
+
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const p2 = particles[j];
+                            const dx = p.x - p2.x;
+                            const dy = p.y - p2.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 150) {
+                                ctx.beginPath();
+                                ctx.moveTo(p.x, p.y);
+                                ctx.lineTo(p2.x, p2.y);
+                                ctx.strokeStyle = `rgba(100, 116, 139, ${0.1 * (1 - dist / 150)})`;
+                                ctx.stroke();
+                            }
+                        }
+                    });
+                    animationFrameId = requestAnimationFrame(animate);
+                };
+
+                animate();
+                return () => {
+                    cancelAnimationFrame(animationFrameId);
+                    window.removeEventListener('resize', resize);
+                };
+            }, []);
+
+            return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
+        };
+
+        const Nav = ({ activePage, setActivePage }) => {
+            const pages = [
+                { id: 'home', label: 'Boot', icon: <Cpu size={16}/> },
+                { id: 'timeline', label: 'Archive', icon: <Archive size={16}/> },
+                { id: 'year19', label: 'Accel', icon: <Zap size={16}/> },
+                { id: 'future', label: 'V.21', icon: <Target size={16}/> },
+            ];
+
+            return (
+                <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-slate-900/40 backdrop-blur-xl border border-white/10 p-1.5 rounded-full shadow-2xl">
+                    {pages.map((p) => (
+                        <button
+                            key={p.id}
+                            onClick={() => setActivePage(p.id)}
+                            className={`px-4 py-2 rounded-full flex items-center gap-2 transition-all duration-300 text-xs font-medium uppercase tracking-widest ${
+                                activePage === p.id 
+                                ? 'bg-white text-slate-950 scale-105 shadow-lg shadow-white/10' 
+                                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            {p.icon}
+                            <span className="hidden md:inline">{p.label}</span>
+                        </button>
+                    ))}
+                </nav>
+            );
+        };
+
+        // --- Page Sections ---
+
+        const HomePage = ({ setActivePage }) => {
+            const [bootStatus, setBootStatus] = useState('booting');
+
+            useEffect(() => {
+                const timer = setTimeout(() => setBootStatus('ready'), 2500);
+                return () => clearTimeout(timer);
+            }, []);
+
+            if (bootStatus === 'booting') {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[80vh] font-mono text-slate-400">
+                        <div className="w-64 h-1 bg-slate-800 rounded-full mb-4 overflow-hidden">
+                            <div className="h-full bg-white animate-[loading_2s_ease-in-out_infinite]" style={{width: '50%'}} />
+                        </div>
+                        <div className="text-sm text-center px-4">
+                            <Typewriter text="Booting Personal Archive... Identity Confirmed: TULI ARON... Initializing Birthday Module..." speed={30} />
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-12 md:space-y-24 py-8 animate-in fade-in duration-1000">
+                    <section className="max-w-4xl mx-auto px-6">
+                        <div className="bg-gradient-to-r from-blue-600/20 via-white/10 to-blue-600/20 border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+                            <div className="flex items-center gap-6 relative z-10">
+                                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-slate-950 shadow-xl shadow-white/20">
+                                    <Cake size={32} />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Official Birthday Archive</h2>
+                                    <p className="text-sm font-mono text-slate-400 uppercase tracking-widest">March 8 • Transition to V.20</p>
+                                </div>
+                            </div>
+                            <div className="text-center md:text-right relative z-10">
+                                <p className="text-3xl font-black text-white italic uppercase">20 Years Old</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="text-center space-y-4 px-4">
+                        <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white">TULI ARON</h1>
+                        <p className="text-slate-500 tracking-[0.4em] uppercase text-sm font-semibold">VERSION 20 ACTIVE</p>
+                    </section>
+
+                    <section className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-6">
+                        {[
+                            { label: 'Status', value: 'UPGRADED', icon: <ShieldCheck className="text-emerald-400"/> },
+                            { label: 'Primary Shift', value: 'QUIT SMOKING', icon: <Zap className="text-amber-400"/> },
+                            { label: 'Phase', value: 'MOMENTUM', icon: <TrendingUp className="text-blue-400"/> },
+                        ].map((item, i) => (
+                            <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm group hover:border-white/30 transition-all">
+                                <div className="mb-4">{item.icon}</div>
+                                <p className="text-xs text-slate-500 uppercase tracking-widest">{item.label}</p>
+                                <p className="text-xl font-bold text-white mt-1">{item.value}</p>
+                            </div>
+                        ))}
+                    </section>
+
+                    <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto px-6 pb-20">
+                        {[
+                            { id: 'timeline', label: 'Two Decades', desc: '0-20 Archive' },
+                            { id: 'year19', label: 'Year 19', desc: 'Acceleration' },
+                            { id: 'future', label: 'Future', desc: 'V.21 Activation' },
+                        ].map((page) => (
+                            <button
+                                key={page.id}
+                                onClick={() => setActivePage(page.id)}
+                                className="group h-40 bg-slate-900/50 border border-white/5 rounded-xl overflow-hidden hover:border-white/20 transition-all flex flex-col items-center justify-center text-center p-4"
+                            >
+                                <h3 className="text-lg font-bold text-white uppercase tracking-tighter">{page.label}</h3>
+                                <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest">{page.desc}</p>
+                                <ArrowRight size={16} className="mt-4 text-white opacity-0 group-hover:opacity-100 transition-all" />
+                            </button>
+                        ))}
+                    </section>
+                </div>
+            );
+        };
+
+        const TimelinePage = () => {
+            const eras = [
+                { title: 'Foundation', years: '0–5', desc: 'The initial code. Safety and sensory input.' },
+                { title: 'Curiosity', years: '6–10', desc: 'Learning structures and social dynamics.' },
+                { title: 'Discovery', years: '11–15', desc: 'Parsing identity and independent thought.' },
+                { title: 'Expansion', years: '16–20', desc: 'High-stakes decisions and self-mastery.' },
+            ];
+
+            return (
+                <div className="max-w-6xl mx-auto px-6 py-20 space-y-16 animate-in fade-in duration-700">
+                    <header className="space-y-4">
+                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Two Decades</h2>
+                        <p className="text-slate-400 font-mono text-sm">Visualizing the 0 → 20 transition phase.</p>
+                    </header>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        {eras.map((era, i) => (
+                            <div key={i} className="pt-8 border-t border-white/10">
+                                <span className="text-xs font-mono text-slate-500">{era.years}</span>
+                                <h3 className="text-xl font-bold text-white mb-3 uppercase">{era.title}</h3>
+                                <p className="text-sm text-slate-400">{era.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Year19Page = () => {
+            const months = [
+                { name: 'Mar', lesson: 'Start of V.19' }, { name: 'Apr', lesson: 'Embrace friction' },
+                { name: 'May', lesson: 'Consistency > Intensity' }, { name: 'Jun', lesson: 'Focus is a muscle' },
+                { name: 'Jul', lesson: 'Cut the noise' }, { name: 'Aug', lesson: 'Routine is freedom' },
+                { name: 'Sep', lesson: 'Depth over breadth' }, { name: 'Oct', lesson: 'Calculated action' },
+                { name: 'Nov', lesson: 'Don\'t stop now' }, { name: 'Dec', lesson: 'End of 2025 cycle' },
+                { name: 'Jan', lesson: 'Start small' }, { name: 'Feb', lesson: 'Ready for V.20' }
+            ];
+
+            return (
+                <div className="max-w-6xl mx-auto px-6 py-20 space-y-16 animate-in fade-in duration-700">
+                    <div className="relative overflow-hidden bg-slate-900 border border-white/10 rounded-[3rem] p-12 text-center">
+                        <h2 className="text-4xl font-bold text-white mb-4 uppercase">The Year I Took Control</h2>
+                        <p className="text-slate-400 max-w-2xl mx-auto"> Quitting smoking was the proof that discipline beats habit.</p>
+                        <div className="mt-8 inline-flex items-center gap-2 px-6 py-2 bg-white text-black font-bold rounded-full text-xs">
+                            <Lock size={14}/> SYSTEM CLEANSE COMPLETE
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                        {months.map((m, i) => (
+                            <div key={i} className="p-4 rounded-xl border border-white/10 bg-white/5 flex flex-col items-center gap-2">
+                                <span className="text-xs font-mono text-slate-500">{m.name}</span>
+                                <span className="text-[10px] text-white text-center font-medium">{m.lesson}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const FuturePage = () => (
+            <div className="max-w-4xl mx-auto px-6 py-20 space-y-12 animate-in zoom-in-95 duration-700">
+                <section className="bg-white/[0.03] border border-white/10 p-8 rounded-3xl font-mono text-slate-300">
+                    <h2 className="text-white text-sm uppercase tracking-widest mb-8 border-b border-white/10 pb-4">Letter to Version 30</h2>
+                    <div className="space-y-6 text-sm leading-relaxed">
+                        <p>Tuli,</p>
+                        <p>At 20, the foundation is set. Quitting smoking was the first proof that we could override biological impulses for a higher vision.</p>
+                        <p>Build with intent. Stay dangerous.</p>
+                        <p className="mt-12 text-white">Signed, <br/>Tuli Aron (V.20)</p>
+                    </div>
+                </section>
+                <div className="text-center py-20">
+                    <button className="px-12 py-6 bg-white text-black font-black uppercase tracking-widest rounded-full hover:scale-105 transition-all">
+                        INITIATE NEXT PHASE
+                    </button>
+                </div>
+            </div>
+        );
+
+        // --- Main App ---
+
+        const App = () => {
+            const [activePage, setActivePage] = useState('home');
+
+            return (
+                <div className="min-h-screen">
+                    <NeuralBackground />
+                    <main className="relative z-10 pb-32">
+                        {activePage === 'home' && <HomePage setActivePage={setActivePage} />}
+                        {activePage === 'timeline' && <TimelinePage />}
+                        {activePage === 'year19' && <Year19Page />}
+                        {activePage === 'future' && <FuturePage />}
+                    </main>
+                    <Nav activePage={activePage} setActivePage={setActivePage} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
