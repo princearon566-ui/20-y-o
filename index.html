@@ -186,6 +186,158 @@
     </script>
 </body>
 </html>
+        // FIX: Capitalized Lucide (This was the main crash point)
+        const { 
+            ChevronRight, Cpu, Archive, ShieldCheck, Zap, TrendingUp, 
+            Award, Target, Lock, ArrowRight, Cake, CircleDot, 
+            Activity, Users, Compass 
+        } = Lucide;
+
+        // --- Shared Components ---
+        const Typewriter = ({ text, speed = 50, onComplete }) => {
+            const [displayedText, setDisplayedText] = useState("");
+            const [index, setIndex] = useState(0);
+            useEffect(() => {
+                if (index < text.length) {
+                    const timeout = setTimeout(() => {
+                        setDisplayedText((prev) => prev + text.charAt(index));
+                        setIndex(index + 1);
+                    }, speed);
+                    return () => clearTimeout(timeout);
+                } else if (onComplete) {
+                    onComplete();
+                }
+            }, [index, text, speed, onComplete]);
+            return <span>{displayedText}</span>;
+        };
+
+        const NeuralBackground = () => {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                let animationFrameId;
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+                window.addEventListener('resize', resize);
+                resize();
+                const particles = Array.from({ length: 40 }, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: Math.random() * 2
+                }));
+                const animate = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'rgba(2, 6, 23, 0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach((p, i) => {
+                        p.x += p.vx; p.y += p.vy;
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(100, 116, 139, 0.3)';
+                        ctx.fill();
+                    });
+                    animationFrameId = requestAnimationFrame(animate);
+                };
+                animate();
+                return () => {
+                    cancelAnimationFrame(animationFrameId);
+                    window.removeEventListener('resize', resize);
+                };
+            }, []);
+            return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
+        };
+
+        const Nav = ({ activePage, setActivePage }) => {
+            const pages = [
+                { id: 'home', label: 'Boot', icon: <Cpu size={16}/> },
+                { id: 'timeline', label: 'Archive', icon: <Archive size={16}/> },
+                { id: 'year19', label: 'Accel', icon: <Zap size={16}/> },
+                { id: 'future', label: 'V.21', icon: <Target size={16}/> },
+            ];
+            return (
+                <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-slate-900/40 backdrop-blur-xl border border-white/10 p-1.5 rounded-full shadow-2xl">
+                    {pages.map((p) => (
+                        <button key={p.id} onClick={() => setActivePage(p.id)} className={`px-4 py-2 rounded-full flex items-center gap-2 transition-all duration-300 text-xs font-medium uppercase tracking-widest ${activePage === p.id ? 'bg-white text-slate-950 scale-105' : 'text-slate-400'}`}>
+                            {p.icon} <span className="hidden md:inline">{p.label}</span>
+                        </button>
+                    ))}
+                </nav>
+            );
+        };
+
+        const HomePage = ({ setActivePage }) => {
+            const [bootStatus, setBootStatus] = useState('booting');
+            useEffect(() => {
+                const timer = setTimeout(() => setBootStatus('ready'), 2500);
+                return () => clearTimeout(timer);
+            }, []);
+
+            if (bootStatus === 'booting') {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[80vh] font-mono text-slate-400">
+                        <div className="w-64 h-1 bg-slate-800 rounded-full mb-4 overflow-hidden">
+                            <div className="h-full bg-white animate-[loading_2s_ease-in-out_infinite]" />
+                        </div>
+                        <Typewriter text="Booting Personal Archive... Identity Confirmed: TULI ARON..." speed={30} />
+                    </div>
+                );
+            }
+
+            return (
+                <div className="space-y-12 py-8 px-6 max-w-5xl mx-auto">
+                    <section className="text-center space-y-4">
+                        <h1 className="text-6xl font-black tracking-tighter text-white">TULI ARON</h1>
+                        <p className="text-slate-500 tracking-[0.4em] uppercase text-sm">VERSION 20 ACTIVE</p>
+                    </section>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                         <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                            <ShieldCheck className="text-emerald-400 mb-2"/>
+                            <p className="text-xs text-slate-500 uppercase">Status</p>
+                            <p className="text-xl font-bold text-white">UPGRADED</p>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                            <Zap className="text-amber-400 mb-2"/>
+                            <p className="text-xs text-slate-500 uppercase">Primary Shift</p>
+                            <p className="text-xl font-bold text-white">QUIT SMOKING</p>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                            <TrendingUp className="text-blue-400 mb-2"/>
+                            <p className="text-xs text-slate-500 uppercase">Phase</p>
+                            <p className="text-xl font-bold text-white">MOMENTUM</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activePage, setActivePage] = useState('home');
+            return (
+                <div className="min-h-screen">
+                    <NeuralBackground />
+                    <main className="relative z-10 pb-32">
+                        {activePage === 'home' && <HomePage setActivePage={setActivePage} />}
+                        {activePage !== 'home' && <div className="p-20 text-center text-slate-500">Archive Section Loading...</div>}
+                    </main>
+                    <Nav activePage={activePage} setActivePage={setActivePage} />
+                </div>
+            );
+        };
+
+        // FINAL RENDER
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
             overflow-x: hidden;
         }
     </style>
