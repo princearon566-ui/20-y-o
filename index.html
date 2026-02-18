@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TULI ARON | V.20 ARCHIVE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes loading { 0% { transform: translateX(-100%); } 50% { transform: translateX(0); } 100% { transform: translateX(100%); } }
+        .animate-loading { animation: loading 2s ease-in-out infinite; }
+        @keyframes smoke { 0% { transform: translateY(0) scale(1); opacity: 0; } 50% { opacity: 0.5; } 100% { transform: translateY(-100px) scale(2); opacity: 0; } }
+        .animate-smoke { animation: smoke 5s infinite ease-out; }
+        body { background-color: #020617; color: white; overflow-x: hidden; font-family: ui-sans-serif, system-ui, sans-serif; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="hide-scroll">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Helper to trigger Lucide icon rendering
+        const useLucide = (dependency) => {
+            React.useEffect(() => {
+                lucide.createIcons();
+            }, [dependency]);
+        };
+
+        const Icon = ({ name, size = 16, className = "" }) => (
+            <i data-lucide={name} className={className} style={{ width: size, height: size, display: 'inline-block' }}></i>
+        );
+
+        const NeuralBackground = () => {
+            const canvasRef = React.useRef(null);
+            React.useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                let animationFrameId;
+                const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+                window.addEventListener('resize', resize);
+                resize();
+                const particles = Array.from({ length: 40 }, () => ({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, radius: Math.random() * 2
+                }));
+                const animate = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'rgba(2, 6, 23, 0.8)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach((p, i) => {
+                        p.x += p.vx; p.y += p.vy;
+                        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(100, 116, 139, 0.3)'; ctx.fill();
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const p2 = particles[j]; const dx = p.x - p2.x; const dy = p.y - p2.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 150) {
+                                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+                                ctx.strokeStyle = `rgba(100, 116, 139, ${0.1 * (1 - dist / 150)})`; ctx.stroke();
+                            }
+                        }
+                    });
+                    animationFrameId = requestAnimationFrame(animate);
+                };
+                animate();
+                return () => { cancelAnimationFrame(animationFrameId); window.removeEventListener('resize', resize); };
+            }, []);
+            return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
+        };
+
+        const HomePage = ({ setActivePage }) => {
+            const [bootStatus, setBootStatus] = React.useState('booting');
+            React.useEffect(() => {
+                const timer = setTimeout(() => setBootStatus('ready'), 2000);
+                return () => clearTimeout(timer);
+            }, []);
+            useLucide(bootStatus);
+
+            if (bootStatus === 'booting') {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[80vh] font-mono text-slate-400">
+                        <div className="w-64 h-1 bg-slate-800 rounded-full mb-4 overflow-hidden"><div className="h-full bg-white animate-loading" /></div>
+                        <p className="text-xs">INITIALIZING ARCHIVE V.20...</p>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-5xl mx-auto px-6 py-12 space-y-20 animate-in fade-in">
+                    <section className="text-center space-y-4">
+                        <h2 className="text-slate-500 tracking-[0.4em] uppercase text-xs font-semibold">System Root</h2>
+                        <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white">TULI ARON</h1>
+                        <p className="text-slate-400 font-mono text-sm tracking-widest">ARCHIVE RANGE: 2006 — 2026</p>
+                    </section>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                            <Icon name="ShieldCheck" className="text-emerald-400 mb-4" size={24}/>
+                            <p className="text-xs text-slate-500 uppercase tracking-widest">Status</p>
+                            <p className="text-xl font-bold">UPGRADED</p>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                            <Icon name="Zap" className="text-amber-400 mb-4" size={24}/>
+                            <p className="text-xs text-slate-500 uppercase tracking-widest">Core Change</p>
+                            <p className="text-xl font-bold">SMOKE FREE</p>
+                        </div>
+                        <div className="bg-white/5 border border-white/10 p-6 rounded-2xl">
+                            <Icon name="Target" className="text-blue-400 mb-4" size={24}/>
+                            <p className="text-xs text-slate-500 uppercase tracking-widest">Next Target</p>
+                            <p className="text-xl font-bold">EXPANSION</p>
+                        </div>
+                    </div>
+
+                    <div className="text-center">
+                        <button onClick={() => setActivePage('timeline')} className="px-8 py-4 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform">
+                            EXPLORE TIMELINE
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const TimelinePage = () => {
+            useLucide();
+            const eras = [
+                { t: 'Foundation', y: '0–5', d: 'The initial code. Exploration of physical space.' },
+                { t: 'Curiosity', y: '6–10', d: 'Querying the world and learning social structures.' },
+                { t: 'Discovery', y: '11–15', d: 'Parsing identity and independent thought.' },
+                { t: 'Expansion', y: '16–20', d: 'Self-mastery and high-stakes discipline.' },
+            ];
+            return (
+                <div className="max-w-5xl mx-auto px-6 py-20 space-y-16 animate-in fade-in">
+                    <h2 className="text-4xl font-black uppercase tracking-tighter">Two Decades</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        {eras.map((e, i) => (
+                            <div key={i} className="pt-8 border-t border-white/10 relative">
+                                <span className="absolute -top-3 left-0 bg-slate-950 px-2 text-[10px] font-mono text-slate-500 border border-white/10 rounded-full">{e.y}</span>
+                                <h3 className="text-lg font-bold mb-2 uppercase">{e.t}</h3>
+                                <p className="text-sm text-slate-400">{e.d}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const Year19Page = () => {
+            useLucide();
+            return (
+                <div className="max-w-5xl mx-auto px-6 py-20 space-y-12 animate-in fade-in">
+                    <div className="bg-slate-900 border border-white/10 rounded-[2rem] p-12 text-center relative overflow-hidden">
+                        <div className="relative z-10 space-y-6">
+                            <Icon name="Lock" size={24} className="mx-auto text-white opacity-50" />
+                            <h2 className="text-4xl font-bold uppercase">The Year of Control</h2>
+                            <p className="text-slate-400 max-w-xl mx-auto">V.19 was the test. Quitting smoking was the proof of concept: Biology can be overridden by Will.</p>
+                            <div className="inline-block px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono rounded-full">SYSTEM CLEANSE COMPLETE</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const FuturePage = () => {
+            useLucide();
+            return (
+                <div className="max-w-3xl mx-auto px-6 py-20 animate-in zoom-in-95">
+                    <div className="bg-white/[0.03] border border-white/10 p-10 rounded-3xl font-mono text-sm leading-relaxed text-slate-300">
+                        <p className="text-white mb-8 border-b border-white/10 pb-4">TRANSMISSION_TO_V.30</p>
+                        <p className="mb-4">Tuli,</p>
+                        <p className="mb-4">At 20, the foundation is set. Quitting smoking wasn't about health—it was about proving you could change the architecture of your habits.</p>
+                        <p className="mb-8">Build with intent. Stay dangerous.</p>
+                        <p className="text-white">Signed, <br/>Tuli Aron (V.20)</p>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activePage, setActivePage] = React.useState('home');
+            useLucide(activePage);
+
+            return (
+                <div className="min-h-screen relative pb-32">
+                    <NeuralBackground />
+                    <div className="relative z-10">
+                        {activePage === 'home' && <HomePage setActivePage={setActivePage} />}
+                        {activePage === 'timeline' && <TimelinePage />}
+                        {activePage === 'year19' && <Year19Page />}
+                        {activePage === 'future' && <FuturePage />}
+                    </div>
+                    
+                    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-slate-900/60 backdrop-blur-xl border border-white/10 p-1.5 rounded-full shadow-2xl">
+                        {[
+                            { id: 'home', icon: 'Cpu', label: 'Boot' },
+                            { id: 'timeline', icon: 'Archive', label: 'Archive' },
+                            { id: 'year19', icon: 'Zap', label: 'Accel' },
+                            { id: 'future', icon: 'Target', label: 'V.21' }
+                        ].map(p => (
+                            <button key={p.id} onClick={() => setActivePage(p.id)} 
+                                    className={`px-4 py-2 rounded-full flex items-center gap-2 transition-all text-[10px] uppercase tracking-widest ${activePage === p.id ? 'bg-white text-black' : 'text-slate-400 hover:text-white'}`}>
+                                <Icon name={p.icon} size={14} />
+                                <span className="hidden md:inline">{p.label}</span>
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
